@@ -89,14 +89,8 @@
 
 <br />
 
-{% if session.matches|length is not equalto 0  %}
-<h2>You found </h2>
-<p id="results">
-  {% for match in session.matches %}
-  {{ match }} 
-  {% endfor %}
-</p>
-{% endif %}
+<h2 id="found"></h2>
+<p id="results"></p>
 
 
 {% with messages = get_flashed_messages() %}
@@ -125,6 +119,7 @@ $("#entry").submit( function(event) {
 // shift and control, so make sure whatever you do with the
 // event does not depend on it being a letter. 
 //
+
 $("#attempt").keyup(function(event) {
    var txt = $("#attempt").val();  // Current content of the input field
    var keycode = event.which;      // They key that just went up
@@ -135,21 +130,25 @@ $("#attempt").keyup(function(event) {
    // catches all kinds of keys.  (Also, the difference between
    // upper and lower case comes from state of shift key + key code,
    // so ignoring the shift key we get only the upper case letters.
-
    if (! "ABCDEFGHIJKLMNOPQRSTUVWXYZ".includes(letter)) { return }
+   var displayed = $("#results").html()
 
-   $.getJSON( "/_check", { text: txt, lett: letter }, 
+   $.getJSON( "/_check", { text: txt, lett: letter, matches: displayed}, 
               function(data) {
                 letter_valid = data.result.letter_valid;
                 word_valid = data.result.word_valid;
                 repeat_word = data.result.repeat_word;
                 if (letter_valid) { 
+
                   if (word_valid) {
-                   $("results").val(txt + " ");
+                  	if (displayed == ""){
+                  		$("#found").html("You found:\n");
+                  	}
+                   $("#results").html(displayed + txt + "\n");
                    $("#attempt").val("");
                 } else {
                   // TODO: letter highlighting
-                  console.log("else")
+                  console.log("something else")
                 }
                }
                else {
@@ -158,7 +157,7 @@ $("#attempt").keyup(function(event) {
                 }
                }
            );
-   $.getJSON("/_choosepage", function(){});
+   $.getJSON("/_choosepage", { matches: $("#results").html()}, function(){});
    });
 </script>
 

@@ -90,7 +90,8 @@ def check():
     text = flask.request.args.get("text", type=str)
     letter = flask.request.args.get("lett", type=str)
     jumble = flask.session["jumble"].upper()
-    matches = flask.session.get("matches", [])  # Default to empty list
+    target_count = flask.session["target_count"]
+    matches = flask.request.args.get("matches", type=str).split(" ")
 
     # Is it good?
     in_jumble = LetterBag(jumble).contains(letter)
@@ -99,17 +100,23 @@ def check():
     # If letter is valid
     # If word is valid
     # If word has been found already
+
     rslt = {
                 "letter_valid": in_jumble,
                 "word_valid": (matched and in_jumble and not (text in matches)),
                 "repeat_word": text in matches,
+                "is_done": len(matches) >= target_count
     }
+
+    if rslt["word_valid"]:
+        matches.append(text)
+        flask.session["matches"] = matches
 
     return flask.jsonify(result=rslt)
 
 @app.route("/_choosepage")
 def choose_page():
-    matches = flask.session.get("matches", [])  # Default to empty list
+    matches = flask.request.args.get("matches", type=str).split(" ")  # Default to empty list
     # Choose page:  Solved enough, or keep going?
     if len(matches) >= flask.session["target_count"]:
        return flask.redirect(flask.url_for("success"))

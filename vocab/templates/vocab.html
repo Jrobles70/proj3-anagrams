@@ -91,16 +91,7 @@
 
 <h2 id="found"></h2>
 <p id="results"></p>
-
-
-{% with messages = get_flashed_messages() %}
-  {% if messages %}
-    <!-- Mismatch, already found, etc. "flashed" from Python -->
-    {% for message in messages %}
-      <p class="message">{{ message }}</p>
-    {% endfor %}
-  {% endif %}
-{% endwith %}
+<p id="message"></p>
 
 <script type="text/javascript">
   
@@ -137,9 +128,13 @@ $("#attempt").keyup(function(event) {
               function(data) {
                 letter_valid = data.result.letter_valid;
                 word_valid = data.result.word_valid;
-                repeat_word = data.result.repeat_word;
+                mess = data.result.message;
+                game_over = data.result.game_over;
+                if (game_over) {
+               		window.location.replace("/success")
+               		return
+                }
                 if (letter_valid) { 
-
                   if (word_valid) {
                   	if (displayed == ""){
                   		$("#found").html("You found:\n");
@@ -153,11 +148,11 @@ $("#attempt").keyup(function(event) {
                }
                else {
                 $("#attempt").val(txt.slice(0, -1));
-                   return
                 }
+                $("#message").html(mess);
                }
+
            );
-   $.getJSON("/_choosepage", { matches: $("#results").html()}, function(){});
    });
 </script>
 

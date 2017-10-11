@@ -91,7 +91,7 @@ def check():
     letter = flask.request.args.get("lett", type=str)
     jumble = flask.session["jumble"].upper()
     target_count = flask.session["target_count"]
-    matches = flask.request.args.get("matches", type=str).split(" ")
+    matches = flask.request.args.get("matches", type=str).split("\n")
 
     # Is it good?
     in_jumble = LetterBag(jumble).contains(letter)
@@ -105,23 +105,25 @@ def check():
                 "letter_valid": in_jumble,
                 "word_valid": (matched and in_jumble and not (text in matches)),
                 "repeat_word": text in matches,
-                "is_done": len(matches) >= target_count
+                "is_done": len(matches) >= target_count,
+                "game_over": False
     }
 
     if rslt["word_valid"]:
         matches.append(text)
         flask.session["matches"] = matches
+        if (target_count - len(matches)) + 1 > 0:
+            rslt["message"] = "You found a new word! Only {} more to go".format(target_count - len(matches) + 1)
+        else:
+            rslt["game_over"] = True
+    elif rslt["repeat_word"]:
+        rslt["message"] = "You already found {}".format(text)
+    elif not in_jumble:
+        rslt["message"] = "{} is not in the jumbled letters".format(letter.lower())
+    elif not matched:
+        rslt["message"] = "{} isn't in the list of words".format(text)
 
     return flask.jsonify(result=rslt)
-
-@app.route("/_choosepage")
-def choose_page():
-    matches = flask.request.args.get("matches", type=str).split(" ")  # Default to empty list
-    # Choose page:  Solved enough, or keep going?
-    if len(matches) >= flask.session["target_count"]:
-       return flask.redirect(flask.url_for("success"))
-    else:
-       return flask.redirect(flask.url_for("keep_going"))
 
 ###############
 # AJAX request handlers

@@ -99,16 +99,14 @@
   $("#entry").submit(function(event) {
       event.preventDefault();
   });
-
+  // Object containing all elements that need to be highlighted
   var word_els = $("[class='col-xs-2 text-center'], [class='col-xs-6 text-center lead']")
-  var words = []
-  for(i = 0; i < word_els.length; i++){
-  	words.push(word_els.eq(i).text())
-  }
+
   function highlight() {
+    // Used this as reference http://jsbin.com/iriwaw/2/edit?html,js,output
   	for(i = 0; i < word_els.length; i++){
   		var curr_row = word_els.eq(i);
-  		var text = words[i];
+  		var text = curr_row.text();
   		var input = $("#attempt").val();
   		if((text.includes(input)) && (input != "")){
   			text = text.replace(new RegExp('(' + input + ')', 'gi'), '<span style="color:red">$1</span>');
@@ -124,6 +122,7 @@
 // words contains each word element
 var tracker = false;
 function insane(){
+  // used this as reference http://jsfiddle.net/G4pxq/268/
 	if (tracker){
 		rand_num = Math.floor(Math.random() * word_els.length);
 		rand_elem = word_els.eq(rand_num);

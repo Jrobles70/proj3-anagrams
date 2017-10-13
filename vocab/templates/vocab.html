@@ -81,7 +81,7 @@
 <div class="row">
   <div class="col-xs-6 text-center">
   <form id="entry" action="/_check">
-    <label for="attempt">Word:</label>
+    <label>Word:</label>
     <input id="attempt" name="attempt" type="text" width="15"
       autocomplete="off"  autofocus />
       <br />
@@ -100,47 +100,24 @@
       event.preventDefault();
   });
 
-  // Dict containing the default innerHTML
-  // The reason for this is so I can save the innerHTML info so I can switch back and forth between highlighted and not
-  var vocab_default = {};
-  // An object containing all row elements
-  var rows = document.getElementsByClassName("row");
-  var word_elements = $("[class='col-xs-2 text-center']");
-  // I had a lot of issues with this part and went through a lot of trial and error
-  // I added this count so that the keys will be order and not skipping numbers like I had it before
-  var count = 0;
-  for (i = 0; i < rows.length; i++) {
-      // If i > 0 and < length -4 then it will always be the vocab rows
-      // I also included in length - 3 so I can get the scrambled row
-      var row_key = count + "_row";
-      var row_html_key = count + "_inner"
-      if ((i > 0 && i < rows.length - 4) || i == rows.length - 3) {
-          vocab_default[row_key] = rows[i];
-          vocab_default[row_html_key] = rows[i].innerHTML;
-          count++;
-      }
+  var word_els = $("[class='col-xs-2 text-center'], [class='col-xs-6 text-center lead']")
+  var words = []
+  for(i = 0; i < word_els.length; i++){
+  	words.push(word_els.eq(i).text())
   }
   function highlight() {
-      // Used this site as a reference to write this function
-      // http://jsbin.com/iriwaw/2/edit?html,js,output
-      for (i = 0; i < Object.keys(vocab_default).length / 2; i++) {
-          var text = $("#attempt").val();
-          var row_key = i + "_row";
-          var row_html_key = i + "_inner";
-          // grabs the current row, rows innerHTML, and makes a lists of the words in that row
-          var curr_row = vocab_default[row_key];
-          var inner = vocab_default[row_html_key];
-          var words = curr_row.innerText.split(" ");
-          for (j = 0; j < words.length; j++) {
-              if (words[j].includes(text)) {
-                  // If the text is in a word then a span will surround them to make them a different color
-                  highlighted = words[j].replace(new RegExp('(' + text + ')', 'gi'), '<span style="color:red">$1</span>');
-                  inner = inner.replace(words[j], highlighted);
-              }
-          }
-          curr_row.innerHTML = inner;
+  	for(i = 0; i < word_els.length; i++){
+  		var curr_row = word_els.eq(i);
+  		var text = words[i];
+  		var input = $("#attempt").val();
+  		if((text.includes(input)) && (input != "")){
+  			text = text.replace(new RegExp('(' + input + ')', 'gi'), '<span style="color:red">$1</span>');
+  		}
+  		if(i == word_els.length - 1)
+  			text = '<strong>' + text + "</strong>";
+  		curr_row.html(text);
 
-      }
+  	}
   }
 // tracks if hard mode is on or off
 // True = on, false = off
@@ -148,8 +125,8 @@
 var tracker = false;
 function insane(){
 	if (tracker){
-		rand_num = Math.floor(Math.random() * word_elements.length);
-		rand_elem = word_elements.eq(rand_num);
+		rand_num = Math.floor(Math.random() * word_els.length);
+		rand_elem = word_els.eq(rand_num);
 		if(rand_elem.is(":visible")){
 			rand_elem.fadeOut(Math.floor(Math.random() * 500), insane)
 
@@ -165,7 +142,7 @@ function insane(){
   	// https://stackoverflow.com/questions/8436544/randomly-fade-divs
   	if(tracker){
   		// Game is on so needs to be turned off
-  		word_elements.fadeIn();
+  		word_els.fadeIn();
   		tracker = false;
   		$("#hard").html("DO YOU DARE TRY INSANE MODE?");
   	}
@@ -173,7 +150,7 @@ function insane(){
   		// Game is off so needs to be turned on
   		tracker = true;
   		$("#hard").html("WAIT NO GO BACK!!");
-  		word_elements.fadeOut();
+  		word_els.fadeOut();
   		insane();
   		}
 });

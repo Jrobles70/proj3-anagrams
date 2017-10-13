@@ -105,7 +105,6 @@ def check():
                 "letter_valid": in_jumble,
                 "word_valid": (matched and in_jumble and not (text in matches)),
                 "repeat_word": text in matches,
-                "is_done": len(matches) >= target_count,
                 "game_over": False
     }
 

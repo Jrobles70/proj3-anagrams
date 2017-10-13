@@ -84,6 +84,8 @@
     <label for="attempt">Word:</label>
     <input id="attempt" name="attempt" type="text" width="15"
       autocomplete="off"  autofocus />
+      <br />
+    <button id = "hard">DO YOU DARE TRY INSANE MODE?</button>
   </form>
 </div></div>
 
@@ -94,66 +96,138 @@
 <p id="message"></p>
 
 <script type="text/javascript">
-  
-// Suppress normal form submission
-$("#entry").submit( function(event) {
-   event.preventDefault();
+  $("#entry").submit(function(event) {
+      event.preventDefault();
   });
 
-// On each keystroke, ask the server whether the current 
-// word is long enough. 
-//
-// We use 'keyup' because the form value
-// is updated before that event is generated.
-// keypress is triggered before the input field has been
-// updated.  Be aware that we'll see non-character keys like
-// shift and control, so make sure whatever you do with the
-// event does not depend on it being a letter. 
-//
+  // Dict containing the default innerHTML
+  // The reason for this is so I can save the innerHTML info so I can switch back and forth between highlighted and not
+  var vocab_default = {};
+  // An object containing all row elements
+  var rows = document.getElementsByClassName("row");
+  var word_elements = $("[class='col-xs-2 text-center']");
+  // I had a lot of issues with this part and went through a lot of trial and error
+  // I added this count so that the keys will be order and not skipping numbers like I had it before
+  var count = 0;
+  for (i = 0; i < rows.length; i++) {
+      // If i > 0 and < length -4 then it will always be the vocab rows
+      // I also included in length - 3 so I can get the scrambled row
+      var row_key = count + "_row";
+      var row_html_key = count + "_inner"
+      if ((i > 0 && i < rows.length - 4) || i == rows.length - 3) {
+          vocab_default[row_key] = rows[i];
+          vocab_default[row_html_key] = rows[i].innerHTML;
+          count++;
+      }
+  }
+  function highlight() {
+      // Used this site as a reference to write this function
+      // http://jsbin.com/iriwaw/2/edit?html,js,output
+      for (i = 0; i < Object.keys(vocab_default).length / 2; i++) {
+          var text = $("#attempt").val();
+          var row_key = i + "_row";
+          var row_html_key = i + "_inner";
+          // grabs the current row, rows innerHTML, and makes a lists of the words in that row
+          var curr_row = vocab_default[row_key];
+          var inner = vocab_default[row_html_key];
+          var words = curr_row.innerText.split(" ");
+          for (j = 0; j < words.length; j++) {
+              if (words[j].includes(text)) {
+                  // If the text is in a word then a span will surround them to make them a different color
+                  highlighted = words[j].replace(new RegExp('(' + text + ')', 'gi'), '<span style="color:red">$1</span>');
+                  inner = inner.replace(words[j], highlighted);
+              }
+          }
+          curr_row.innerHTML = inner;
 
-$("#attempt").keyup(function(event) {
-   var txt = $("#attempt").val();  // Current content of the input field
-   var keycode = event.which;      // They key that just went up
-   var letter = String.fromCharCode(keycode);
+      }
+  }
+// tracks if hard mode is on or off
+// True = on, false = off
+// words contains each word element
+var tracker = false;
+function insane(){
+	if (tracker){
+		rand_num = Math.floor(Math.random() * word_elements.length);
+		rand_elem = word_elements.eq(rand_num);
+		if(rand_elem.is(":visible")){
+			rand_elem.fadeOut(Math.floor(Math.random() * 500), insane)
 
-   // That letter might not be a letter ... it could be the
-   // the backspace key, or even the shift key, because 'keyup'
-   // catches all kinds of keys.  (Also, the difference between
-   // upper and lower case comes from state of shift key + key code,
-   // so ignoring the shift key we get only the upper case letters.
-   if (! "ABCDEFGHIJKLMNOPQRSTUVWXYZ".includes(letter)) { return }
-   var displayed = $("#results").html()
+		}
+		else{
+			rand_elem.fadeIn(Math.floor(Math.random() * 500), insane);
+		}
+	}
+}
 
-   $.getJSON( "/_check", { text: txt, lett: letter, matches: displayed}, 
-              function(data) {
-                letter_valid = data.result.letter_valid;
-                word_valid = data.result.word_valid;
-                mess = data.result.message;
-                game_over = data.result.game_over;
-                if (game_over) {
-               		window.location.replace("/success")
-               		return
-                }
-                if (letter_valid) { 
+  $("#hard").click(function fadeInDiv(){
+  	// Used this as a reference for this function 
+  	// https://stackoverflow.com/questions/8436544/randomly-fade-divs
+  	if(tracker){
+  		// Game is on so needs to be turned off
+  		word_elements.fadeIn();
+  		tracker = false;
+  		$("#hard").html("DO YOU DARE TRY INSANE MODE?");
+  	}
+  	else{
+  		// Game is off so needs to be turned on
+  		tracker = true;
+  		$("#hard").html("WAIT NO GO BACK!!");
+  		word_elements.fadeOut();
+  		insane();
+  		}
+});
+
+  $("#attempt").keyup(function(event) {
+      var txt = $("#attempt").val(); // Current content of the input field
+      var keycode = event.which; // They key that just went up
+      var letter = String.fromCharCode(keycode);
+
+      if (event.keyCode == 8 || event.charCode == 46)
+          // If the user deletes a letter highlight will be called again to highlight the remaining letters
+          highlight();
+      if (!"ABCDEFGHIJKLMNOPQRSTUVWXYZ".includes(letter)) {
+          return
+      }
+      // Grabs the words that are currently displayed. If none then displayed == ""
+      var displayed = $("#results").html()
+
+      $.getJSON("/_check", {
+              text: txt,
+              lett: letter,
+              matches: displayed
+          },
+          function(data) {
+              letter_valid = data.result.letter_valid;
+              word_valid = data.result.word_valid;
+              mess = data.result.message;
+              game_over = data.result.game_over;
+              if (game_over) {
+                  window.location.replace("/success")
+                  return
+              }
+              if (letter_valid) {
                   if (word_valid) {
-                  	if (displayed == ""){
-                  		$("#found").html("You found:\n");
-                  	}
-                   $("#results").html(displayed + txt + "\n");
-                   $("#attempt").val("");
-                } else {
-                  // TODO: letter highlighting
-                  console.log("something else")
-                }
-               }
-               else {
-                $("#attempt").val(txt.slice(0, -1));
-                }
-                $("#message").html(mess);
-               }
+                      highlight();
+                      if (displayed == "") {
+                          $("#found").html("You found:\n");
+                      }
+                      $("#results").html(displayed + txt + "\n");
+                      $("#attempt").val("");
+                  } else {
+                      highlight();
+                  }
+              } else {
+                  // My attempt at stopping the user from entering keys theyre not supposed to it sort of works
+                  // If you were to press keys as fast as you can then you can get past this
+                  $("#attempt").val(txt.slice(0, -1));
+              }
+              // Displays appropriate message
+              $("#message").html(mess);
+          }
 
-           );
-   });
+      );
+  });
 </script>
 
 

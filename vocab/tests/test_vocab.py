@@ -36,6 +36,13 @@ def test_small_vocab():
     assert not vocab.has("many")
     assert sorted(vocab.as_list()) == sorted(l)
 
+def test_substring():
+    l = ["Hello"]
+    vocab = Vocab(l)
+    assert not vocab.has("el")
+    assert not vocab.has("ell")
+    assert not vocab.has("o")
+
 
 def test_from_simulated_file():
     from io import StringIO

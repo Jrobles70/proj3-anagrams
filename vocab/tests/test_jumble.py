@@ -33,3 +33,6 @@ def test_jumbled_pair():
 
 def test_jumbled_more():
     assert same(jumbled(["aabc", "abac", "bcaa"], 2), "aabc")
+
+def test_jumbled_same():
+    assert same(jumbled(["abbc", "abbc"], 2), "abbc")

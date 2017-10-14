@@ -16,7 +16,8 @@ have different anagrams.
 
 ## Authors 
 
-Initial version by M Young; to be revised by CIS 322 students. 
+Initial version by M Young;
+Revised by Justin Robles jrobles@uoregon.edu
 
 ## Known bugs
 
@@ -26,21 +27,14 @@ and I am capturing the process ID for only one of them.  Therefore
 stop.sh manages to kill only one, leaving the other running.  At this
 time I do not know a workaround.  It is necessary to kill the second
 process manually.  Use 'ps | grep python' to discover it, then 'kill'
-to kill it.  Or, on Linux systems, use the 'killall' command. 
+to kill it.  Or, on Linux systems, use the 'killall' command.
+
+When a user types in a letter that is not allowed, javascript will delete that letter.
+If you were to type in many letters rapidly then the letters will not delete.
 
 ## Status
 
-flask_vocab.py and the template vocab.html are a 'skeleton' version 
-of the anagram game for a CIS 322 project.  They uses conventional  
-interaction through a form, interacting only when the user submits the form. 
-Your assignment is to replace the interaction with AJAX interaction on each 
-keystroke. 
-
-## Minijax? 
-
-flask_minijax.py and templates/minijax.html are a tiny example of using JQuery 
-with flask for an Ajax application.  They should not be included in the
-version of the project you turn in. 
+Project is updated and will always be checking the users input rather than when a submit button is pressed.
 
 
 ## To run automated tests 
@@ -49,5 +43,24 @@ version of the project you turn in.
 There are currently nose tests for vocab.py, letterbag.py, and jumble.py. 
 
 'make test' should work.  To run 'nosetests' explicitly, you must be
-in the 'vocab' subdirectory. 
+in the 'vocab' subdirectory.
+
+## How to use
+Create a credentials.ini file in the vocab folder
+Using command like run
+```
+make start
+```
+
+If you end a test either with ctrl + c or using make stop you will not be able to use the same port number.
+To kill the port you must run the following commands
+```
+lsof -i :<PORT NUMBER>
+kill <PID>
+```
+## Extra content
+Added in letter highlighting that will highlight letters while the user types them in.
+Insane mode.
+Just try it.
+You know you want to.
 
